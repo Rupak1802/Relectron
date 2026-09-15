@@ -67,5 +67,37 @@
     "age": "Age",
     "action": "Action",
     "analyze": "Analyze"
+  },
+  "sell": {
+    "newEstimate": "New Sale Estimate",
+    "saveDraft": "Save Draft",
+    "takePhoto": "Take a photo",
+    "photoGuidance": "Clear photos get better AI estimates",
+    "analyzing": "AI is analyzing...",
+    "analyzingSub": "Identifying material type and grade",
+    "analysisComplete": "Analysis Complete",
+    "confirmMaterial": "Confirm or edit the material",
+    "detectedMaterial": "Detected Material",
+    "confidence": "Confidence",
+    "minorHazard": "Minor Hazard",
+    "hazardNotice": "Insulation may contain PVC. Do not burn.",
+    "howMuch": "How much do you have?",
+    "estimateWeight": "Estimate the weight",
+    "tapToSpeak": "Tap to speak",
+    "sayWeight": "Say 'Pachis kilo'",
+    "listening": "Listening...",
+    "estimatedValue": "Estimated Value",
+    "basedOnMarket": "Based on current market rates in your zone",
+    "fairRange": "Fair Range",
+    "vsLastWeek": "vs last week",
+    "marketPosition": "Market Position",
+    "compareRecyclers": "Compare Recyclers",
+    "continue": "Continue",
+    "materials": {
+      "copperWireInsulated": "Copper Wire (Insulated)",
+      "copperWireBare": "Copper Wire (Bare)",
+      "mixedAluminum": "Mixed Aluminum",
+      "pcbs": "Printed Circuit Boards"
+    }
   }
 }

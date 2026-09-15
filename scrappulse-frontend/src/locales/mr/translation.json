@@ -1,0 +1,34 @@
+{
+  "sell": {
+    "newEstimate": "नवीन विक्री अंदाज (New Estimate)",
+    "saveDraft": "ड्राफ्ट सेव्ह करा (Save Draft)",
+    "takePhoto": "फोटो काढा (Take a photo)",
+    "photoGuidance": "स्पष्ट फोटोंमुळे अचूक अंदाज मिळतो (Clear photos get better AI estimates)",
+    "analyzing": "AI विश्लेषण करत आहे... (AI is analyzing...)",
+    "analyzingSub": "साहित्याचा प्रकार आणि दर्जा ओळखत आहे (Identifying material type and grade)",
+    "analysisComplete": "विश्लेषण पूर्ण झाले (Analysis Complete)",
+    "confirmMaterial": "सामग्रीची पुष्टी करा (Confirm or edit the material)",
+    "detectedMaterial": "ओळखलेली सामग्री (Detected Material)",
+    "confidence": "आत्मविश्वास (Confidence)",
+    "minorHazard": "किरकोळ धोका (Minor Hazard)",
+    "hazardNotice": "इन्सुलेशनमध्ये PVC असू शकते. जाळू नका. (Insulation may contain PVC. Do not burn.)",
+    "howMuch": "किती वजन आहे? (How much do you have?)",
+    "estimateWeight": "अंदाजे वजन (Estimate the weight)",
+    "tapToSpeak": "बोलण्यासाठी टॅप करा (Tap to speak)",
+    "sayWeight": "उदा. 'पंचवीस किलो' म्हणा (Say 'Pachis kilo')",
+    "listening": "ऐकत आहे... (Listening...)",
+    "estimatedValue": "अंदाजे मूल्य (Estimated Value)",
+    "basedOnMarket": "तुमच्या झोनमधील सध्याच्या बाजारभावानुसार (Based on current market rates)",
+    "fairRange": "वाजवी किंमत (Fair Range)",
+    "vsLastWeek": "मागील आठवड्याच्या तुलनेत (vs last week)",
+    "marketPosition": "बाजार स्थिती (Market Position)",
+    "compareRecyclers": "खरेदीदारांची तुलना करा (Compare Recyclers)",
+    "continue": "पुढे जा (Continue)",
+    "materials": {
+      "copperWireInsulated": "तांब्याची तार (कव्हरसह) (Copper Wire - Insulated)",
+      "copperWireBare": "तांब्याची तार (कव्हरशिवाय) (Copper Wire - Bare)",
+      "mixedAluminum": "मिश्रित अल्युमिनियम (Mixed Aluminum)",
+      "pcbs": "सर्किट बोर्ड (PCBs)"
+    }
+  }
+}

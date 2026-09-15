@@ -183,7 +183,7 @@ export default function Recyclers() {
               <p className="font-black text-teal text-lg">₹{(MOCK_RECYCLERS.find(r => r.id === selectedId)?.price || 0) * 15}</p>
             </div>
           </div>
-          <button onClick={() => navigate('/collector')} className="w-full bg-primary-green hover:bg-primary-green/90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]">
+          <button onClick={() => navigate(`/collector/handover/LOT-2026-MH-${Math.floor(1000 + Math.random() * 9000)}`)} className="w-full bg-primary-green hover:bg-primary-green/90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]">
             Confirm Pickup Request
           </button>
         </div>

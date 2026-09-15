@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
-import { Camera, Image as ImageIcon, Info, RotateCcw, ChevronRight, AlertTriangle, Mic, Scale, ChevronLeft, CheckCircle2, Sparkles, TrendingUp } from 'lucide-react';
+import { Camera, Image as ImageIcon, Info, RotateCcw, ChevronRight, AlertTriangle, Mic, Scale, ChevronLeft, CheckCircle2, Sparkles, TrendingUp, Volume2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '../../lib/utils';
+import { cn, speakText } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 type Step = 'capture' | 'ai-result' | 'weight' | 'valuation';
 
 export default function Sell() {
   const [step, setStep] = useState<Step>('capture');
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   // Step 1: Capture State
   const [photos, setPhotos] = useState<string[]>([]);
@@ -75,8 +77,8 @@ export default function Sell() {
             <button onClick={() => step === 'capture' ? navigate(-1) : prevStep(step)} className="p-2 -ml-2 text-neutral-500 hover:text-neutral-900 bg-neutral-100 lg:bg-white rounded-full transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className="font-black text-neutral-900 lg:text-lg">New Sale Estimate</span>
-            <button className="text-sm font-bold text-teal hover:underline bg-teal/10 px-3 py-1.5 rounded-full">Save Draft</button>
+            <span className="font-black text-neutral-900 lg:text-lg">{t('sell.newEstimate')}</span>
+            <button className="text-sm font-bold text-teal hover:underline bg-teal/10 px-3 py-1.5 rounded-full">{t('sell.saveDraft')}</button>
           </div>
           <div className="h-2 bg-neutral-100 rounded-full overflow-hidden w-full relative">
             <motion.div 
@@ -92,11 +94,16 @@ export default function Sell() {
           <AnimatePresence mode="wait">
             {step === 'capture' && (
               <motion.div key="capture" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <div className="mb-6">
-                  <h2 className="text-2xl font-black text-neutral-900">Take a photo</h2>
-                  <p className="text-sm font-medium text-neutral-500 flex items-center gap-1 mt-1">
-                    Clear photos get better AI estimates <Info className="w-4 h-4 text-teal" />
-                  </p>
+                <div className="mb-6 flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-black text-neutral-900">{t('sell.takePhoto')}</h2>
+                    <p className="text-sm font-medium text-neutral-500 flex items-center gap-1 mt-1">
+                      {t('sell.photoGuidance')} <Info className="w-4 h-4 text-teal" />
+                    </p>
+                  </div>
+                  <button onClick={() => speakText(t('sell.takePhoto') + '. ' + t('sell.photoGuidance'), i18n.language)} className="p-2 bg-teal/10 text-teal rounded-full hover:bg-teal/20 transition-colors">
+                    <Volume2 className="w-5 h-5" />
+                  </button>
                 </div>
                 <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
                 
@@ -150,15 +157,20 @@ export default function Sell() {
                       <Sparkles className="w-10 h-10 text-teal absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
                     </div>
                     <div>
-                      <h3 className="font-black text-2xl text-neutral-900">AI is analyzing...</h3>
-                      <p className="text-neutral-500 mt-2 font-medium">Identifying material type and grade</p>
+                      <h3 className="font-black text-2xl text-neutral-900">{t('sell.analyzing')}</h3>
+                      <p className="text-neutral-500 mt-2 font-medium">{t('sell.analyzingSub')}</p>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="mb-6 lg:mb-8">
-                      <h2 className="text-2xl font-black text-neutral-900">Analysis Complete</h2>
-                      <p className="text-sm font-medium text-neutral-500 mt-1">Confirm or edit the material</p>
+                    <div className="mb-6 lg:mb-8 flex justify-between items-start">
+                      <div>
+                        <h2 className="text-2xl font-black text-neutral-900">{t('sell.analysisComplete')}</h2>
+                        <p className="text-sm font-medium text-neutral-500 mt-1">{t('sell.confirmMaterial')}</p>
+                      </div>
+                      <button onClick={() => speakText(t('sell.analysisComplete') + '. ' + t('sell.confirmMaterial'), i18n.language)} className="p-2 bg-teal/10 text-teal rounded-full hover:bg-teal/20 transition-colors">
+                        <Volume2 className="w-5 h-5" />
+                      </button>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-border p-1.5 overflow-hidden shadow-sm mb-8">
@@ -167,30 +179,41 @@ export default function Sell() {
 
                     <div className="space-y-6">
                       <div>
-                        <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 block pl-1">Detected Material</label>
+                        <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 block pl-1">{t('sell.detectedMaterial')}</label>
                         <select 
                           value={material} 
                           onChange={(e) => setMaterial(e.target.value)}
                           className="w-full bg-neutral-50 border border-border rounded-xl p-4 font-bold text-neutral-900 appearance-none focus:outline-none focus:ring-2 focus:ring-teal/50 shadow-sm cursor-pointer"
                         >
-                          <option>Copper Wire (Insulated)</option>
-                          <option>Copper Wire (Bare)</option>
-                          <option>Mixed Aluminum</option>
-                          <option>Printed Circuit Boards</option>
+                          <option value="Copper Wire (Insulated)">{t('sell.materials.copperWireInsulated')}</option>
+                          <option value="Copper Wire (Bare)">{t('sell.materials.copperWireBare')}</option>
+                          <option value="Mixed Aluminum">{t('sell.materials.mixedAluminum')}</option>
+                          <option value="Printed Circuit Boards">{t('sell.materials.pcbs')}</option>
                         </select>
                       </div>
 
                       <div className="flex gap-3">
                         <div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
                           <CheckCircle2 className="w-6 h-6 text-green-600 mb-2" />
-                          <span className="text-sm font-bold text-green-800">94% Confidence</span>
+                          <span className="text-sm font-bold text-green-800">94% {t('sell.confidence')}</span>
                         </div>
                         <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col items-center justify-center text-center relative group shadow-sm">
                           <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
-                          <span className="text-sm font-bold text-amber-800">Minor Hazard</span>
+                          <span className="text-sm font-bold text-amber-800">{t('sell.minorHazard')}</span>
                           <div className="hidden group-hover:block absolute bottom-full mb-2 bg-neutral-900 text-white text-xs p-3 rounded-lg w-56 shadow-xl z-20 pointer-events-none text-left">
-                            Insulation may contain PVC. Do not burn.
+                            {t('sell.hazardNotice')}
                           </div>
+                        </div>
+                      </div>
+                      
+                      {/* Critical Minerals Badge */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex items-start gap-3">
+                        <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
+                          <Info className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold text-blue-900 block mb-1">Contains Critical Minerals</span>
+                          <span className="text-xs text-blue-700">Copper (Cu) • Est. Recovery: 85%</span>
                         </div>
                       </div>
                     </div>
@@ -201,28 +224,38 @@ export default function Sell() {
 
             {step === 'weight' && (
               <motion.div key="weight" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <div className="mb-8">
-                  <h2 className="text-2xl font-black text-neutral-900">How much do you have?</h2>
-                  <p className="text-sm font-medium text-neutral-500 mt-1">Estimate the weight of <span className="font-bold text-neutral-700">{material}</span></p>
+                <div className="mb-8 flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-black text-neutral-900">{t('sell.howMuch')}</h2>
+                    <p className="text-sm font-medium text-neutral-500 mt-1">{t('sell.estimateWeight')} <span className="font-bold text-neutral-700">{material}</span></p>
+                  </div>
+                  <button onClick={() => speakText(t('sell.howMuch') + '. ' + t('sell.estimateWeight'), i18n.language)} className="p-2 bg-teal/10 text-teal rounded-full hover:bg-teal/20 transition-colors">
+                    <Volume2 className="w-5 h-5" />
+                  </button>
                 </div>
 
                 <div className="bg-white border border-border rounded-3xl p-8 lg:p-12 shadow-sm mb-8 text-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Scale className="w-32 h-32" /></div>
-                  <div className="flex items-baseline justify-center gap-1 mb-10 relative z-10">
+                  <div className="flex items-baseline justify-center gap-1 mb-8 relative z-10">
                     <span className="text-6xl lg:text-7xl font-black text-neutral-900 tracking-tighter">{weight}</span>
                     <span className="text-2xl font-bold text-neutral-400">kg</span>
                   </div>
 
-                  <input 
-                    type="range" 
-                    min="1" max="100" 
-                    value={weight} 
-                    onChange={(e) => setWeight(parseInt(e.target.value))}
-                    className="w-full accent-teal h-3 bg-neutral-100 rounded-full appearance-none outline-none relative z-10 cursor-pointer shadow-inner" 
-                  />
-                  <div className="flex justify-between text-xs font-bold text-neutral-400 mt-3 px-1 relative z-10">
-                    <span>1kg</span>
-                    <span>100kg+</span>
+                  {/* Tactile Big Buttons instead of Slider */}
+                  <div className="grid grid-cols-4 gap-2 mb-4 relative z-10">
+                    {[1, 5, 10, 50].map((val) => (
+                      <button 
+                        key={val}
+                        onClick={() => setWeight(prev => Math.min(1000, prev + val))}
+                        className="bg-neutral-100 hover:bg-teal hover:text-white text-neutral-700 font-bold py-3 rounded-xl transition-colors shadow-sm active:scale-95"
+                      >
+                        +{val}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-4 relative z-10">
+                    <button onClick={() => setWeight(Math.max(1, weight - 1))} className="px-4 py-2 rounded-full border border-border text-neutral-500 font-bold hover:bg-neutral-50">- 1 kg</button>
+                    <button onClick={() => setWeight(0)} className="px-4 py-2 rounded-full border border-border text-red-500 font-bold hover:bg-red-50">Reset</button>
                   </div>
                 </div>
 
@@ -241,8 +274,8 @@ export default function Sell() {
                       <Mic className="w-6 h-6" />
                     </div>
                     <div className="flex flex-col items-start text-left">
-                      <span className="text-base font-black text-neutral-900">{isListening ? "Listening..." : "Tap to speak"}</span>
-                      <span className="text-sm text-neutral-500 font-medium">Say "Pachis kilo"</span>
+                      <span className="text-base font-black text-neutral-900">{isListening ? t('sell.listening') : t('sell.tapToSpeak')}</span>
+                      <span className="text-sm text-neutral-500 font-medium">{t('sell.sayWeight')}</span>
                     </div>
                     {isListening && (
                       <div className="flex gap-1.5 ml-6 items-center h-8">
@@ -258,16 +291,21 @@ export default function Sell() {
 
             {step === 'valuation' && (
               <motion.div key="val" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <div className="mb-8">
-                  <h2 className="text-2xl font-black text-neutral-900">Estimated Value</h2>
-                  <p className="text-sm font-medium text-neutral-500 mt-1">Based on current market rates in your zone</p>
+                <div className="mb-8 flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-black text-neutral-900">{t('sell.estimatedValue')}</h2>
+                    <p className="text-sm font-medium text-neutral-500 mt-1">{t('sell.basedOnMarket')}</p>
+                  </div>
+                  <button onClick={() => speakText(t('sell.estimatedValue') + '. ' + t('sell.fairRange') + ' ₹4200 to ₹4800', i18n.language)} className="p-2 bg-teal/10 text-teal rounded-full hover:bg-teal/20 transition-colors">
+                    <Volume2 className="w-5 h-5" />
+                  </button>
                 </div>
 
                 <div className="bg-gradient-to-br from-navy to-slate-900 rounded-3xl p-8 lg:p-10 text-white text-center shadow-2xl mb-8 relative overflow-hidden">
                   <div className="absolute -top-16 -right-16 w-56 h-56 bg-teal/20 rounded-full blur-3xl pointer-events-none" />
                   <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-green-500/20 rounded-full blur-3xl pointer-events-none" />
                   
-                  <h3 className="text-white/70 text-sm font-bold uppercase tracking-widest mb-4 relative z-10">Fair Range</h3>
+                  <h3 className="text-white/70 text-sm font-bold uppercase tracking-widest mb-4 relative z-10">{t('sell.fairRange')}</h3>
                   <div className="flex items-center justify-center gap-3 mb-6 relative z-10">
                     <span className="text-5xl lg:text-6xl font-black text-white">₹4,200</span>
                     <span className="text-white/40 text-3xl font-medium">-</span>
@@ -276,12 +314,12 @@ export default function Sell() {
                   
                   <div className="bg-white/10 rounded-full px-4 py-2 inline-flex items-center gap-2 backdrop-blur-md border border-white/20 relative z-10 shadow-sm">
                     <TrendingUp className="w-5 h-5 text-green-400" />
-                    <span className="text-sm font-bold text-white tracking-wide">+5% vs last week</span>
+                    <span className="text-sm font-bold text-white tracking-wide">+5% {t('sell.vsLastWeek')}</span>
                   </div>
                 </div>
 
                 <div className="bg-white border border-border rounded-2xl p-6 shadow-sm mb-6">
-                  <h3 className="text-sm font-bold text-neutral-900 mb-4 uppercase tracking-wider">Market Position</h3>
+                  <h3 className="text-sm font-bold text-neutral-900 mb-4 uppercase tracking-wider">{t('sell.marketPosition')}</h3>
                   <div className="relative h-3 bg-neutral-100 rounded-full w-full shadow-inner">
                     <div className="absolute left-1/4 right-1/4 h-full bg-gradient-to-r from-teal/40 to-teal/40 rounded-full" />
                     <div className="absolute left-[35%] w-4 h-4 bg-teal border-2 border-white rounded-full top-1/2 -translate-y-1/2 shadow-md z-10 ring-4 ring-teal/20" />
@@ -307,7 +345,7 @@ export default function Sell() {
             disabled={step === 'capture' && photos.length === 0}
             className="w-full bg-navy disabled:bg-neutral-200 disabled:text-neutral-400 text-white font-black text-lg py-4 lg:py-5 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all hover:bg-navy/90 hover:shadow-xl active:scale-[0.98]"
           >
-            {step === 'valuation' ? 'Compare Recyclers' : 'Continue'}
+            {step === 'valuation' ? t('sell.compareRecyclers') : t('sell.continue')}
             <ChevronRight className="w-6 h-6" />
           </button>
         </div>

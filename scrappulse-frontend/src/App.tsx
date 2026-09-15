@@ -14,6 +14,7 @@ import Earnings from './pages/collector/Earnings';
 import Simulator from './pages/collector/Simulator';
 import OpportunityMap from './pages/collector/OpportunityMap';
 import Profile from './pages/collector/Profile';
+import Handover from './pages/collector/Handover';
 
 // Dashboard Pages
 import SupplyRadar from './pages/dashboard/SupplyRadar';
@@ -85,6 +86,7 @@ function App() {
           <Route path="simulator" element={<Simulator />} />
           <Route path="opportunity-map" element={<OpportunityMap />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="handover/:lotId" element={<Handover />} />
         </Route>
 
         {/* Admin/Recycler Dashboard Routes */}
