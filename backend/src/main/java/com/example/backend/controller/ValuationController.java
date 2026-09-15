@@ -32,4 +32,19 @@ public class ValuationController {
         String jsonResult = aiVisionService.analyzeScrapMaterial(base64Image);
         return ResponseEntity.ok(jsonResult);
     }
+
+    @PostMapping("/second-life")
+    public ResponseEntity<String> analyzeSecondLife(@RequestBody Map<String, String> payload) {
+        String base64Image = payload.get("image");
+        if (base64Image == null || base64Image.isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"error\": \"Image is required\"}");
+        }
+        
+        if (base64Image.contains(",")) {
+            base64Image = base64Image.split(",")[1];
+        }
+
+        String jsonResult = aiVisionService.analyzeSecondLifeItem(base64Image);
+        return ResponseEntity.ok(jsonResult);
+    }
 }

@@ -4,6 +4,7 @@ import { useAppStore } from './store';
 import Login from './pages/auth/Login';
 import CollectorLayout from './components/layout/CollectorLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
+import GlobalAiChat from './components/chat/GlobalAiChat';
 
 // Collector Pages
 import Home from './pages/collector/Home';
@@ -69,9 +70,13 @@ function RootRedirect() {
   return <Navigate to="/login" replace />;
 }
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
   return (
-    <BrowserRouter>
+    <>
+      {!isLoginPage && <GlobalAiChat />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<RootRedirect />} />
@@ -129,6 +134,14 @@ function App() {
         </Route>
 
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

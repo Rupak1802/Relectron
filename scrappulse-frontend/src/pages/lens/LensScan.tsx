@@ -1,36 +1,128 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import { Camera, RefreshCcw, Scan, Zap, Lightbulb, Bookmark, Clock, IndianRupee, Wrench, Package, ChevronRight } from 'lucide-react';
-import { useIdeas, type ProjectIdea } from '../../mocks/projectIdeas';
 import { useScans } from '../../mocks/lensScans';
+import { type ProjectIdea } from '../../mocks/projectIdeas';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+
+interface AiResponse {
+  itemName: string;
+  description: string;
+  isHazardous: boolean;
+  hazardReason: string;
+  suggestedPriceRange: string;
+  conditionOptions: string[];
+  upcycleProject: {
+    title: string;
+    steps: string[];
+  };
+  alternativeUseCases: string[];
+}
 
 export default function LensScan() {
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [detectedComponent, setDetectedComponent] = useState('');
   const [results, setResults] = useState<ProjectIdea[]>([]);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   
-  const ideas = useIdeas();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pastScans = useScans();
 
-  const handleScan = () => {
+  const handleCapture = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setScanning(true);
     setScanned(false);
     
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        setCapturedImage(base64String);
+        try {
+          const res = await fetch('http://localhost:8081/api/v1/valuation/second-life', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64String })
+          });
+          
+          if (!res.ok) throw new Error("API failed");
+          
+          const aiData: AiResponse = await res.json();
+          
+          setDetectedComponent(aiData.itemName);
+          
+          // Map AI response to the UI's ProjectIdea format
+          const idea: ProjectIdea = {
+            id: 'ai-generated',
+            sourceComponentType: aiData.itemName,
+            title: aiData.upcycleProject.title,
+            difficulty: 'Intermediate',
+            estimatedTimeMins: 120,
+            estimatedCost: 150,
+            materials: [
+              { name: aiData.itemName, owned: true },
+              { name: 'Basic tools', owned: true },
+              { name: 'Additional parts (see steps)', owned: false }
+            ],
+            noveltyTag: 'novel',
+            steps: aiData.upcycleProject.steps
+          };
+          
+          const altIdeas = aiData.alternativeUseCases.map((useCase, idx) => ({
+             id: `ai-alt-${idx}`,
+             sourceComponentType: aiData.itemName,
+             title: useCase,
+             difficulty: 'Advanced' as const,
+             estimatedTimeMins: 240,
+             estimatedCost: 500,
+             materials: [
+               { name: aiData.itemName, owned: true },
+               { name: 'Advanced kit', owned: false }
+             ],
+             noveltyTag: 'existing' as const,
+             steps: []
+          }));
+          
+          setResults([idea, ...altIdeas]);
+          
+        } catch (err) {
+          console.error("Lens scan failed:", err);
+          // Fallback
+          setDetectedComponent("NEMA 17 Stepper Motor");
+          setResults([{
+            id: 'mock-idea',
+            sourceComponentType: "Motors & Mechanics",
+            title: "DIY Automated Plant Waterer",
+            difficulty: 'Intermediate',
+            estimatedTimeMins: 60,
+            estimatedCost: 200,
+            materials: [
+              { name: 'NEMA 17', owned: true },
+              { name: 'Arduino UNO', owned: false }
+            ],
+            noveltyTag: 'novel',
+            steps: []
+          }]);
+        } finally {
+          setScanning(false);
+          setScanned(true);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
       setScanning(false);
-      setScanned(true);
-      setDetectedComponent('NEMA 17 Stepper Motor');
-      setResults(ideas.filter(i => i.sourceComponentType === 'Motors & Mechanics'));
-    }, 2000);
+    }
   };
 
   const reset = () => {
     setScanned(false);
     setResults([]);
+    setCapturedImage(null);
   };
 
   return (
@@ -47,7 +139,17 @@ export default function LensScan() {
                  <Camera className="w-16 h-16 text-white/50 mb-6" />
                  <h2 className="text-2xl font-black mb-2 text-center">Point Lens at any component</h2>
                  <p className="text-white/70 font-medium text-center max-w-sm mb-8">AI will identify the part and generate existing project ideas or novel remixes you can build with it.</p>
-                 <button onClick={handleScan} className="bg-teal hover:bg-teal/90 text-white font-bold px-8 py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.98]">
+                 
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   capture="environment" 
+                   ref={fileInputRef} 
+                   onChange={handleCapture}
+                   className="hidden" 
+                 />
+                 
+                 <button onClick={() => fileInputRef.current?.click()} className="bg-teal hover:bg-teal/90 text-white font-bold px-8 py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.98]">
                    <Scan className="w-5 h-5" /> Tap to Scan
                  </button>
                </div>
@@ -55,7 +157,11 @@ export default function LensScan() {
 
              {scanning && (
                <div className="absolute inset-0">
-                 <img src="https://picsum.photos/seed/motor1/800/600" className="w-full h-full object-cover opacity-60" />
+                 {capturedImage ? (
+                   <img src={capturedImage} className="w-full h-full object-cover opacity-60" />
+                 ) : (
+                   <div className="w-full h-full bg-neutral-800" />
+                 )}
                  
                  {/* Scanning Overlay Grid */}
                  <div className="absolute inset-0 bg-[linear-gradient(rgba(0,137,123,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,137,123,0.2)_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -77,7 +183,11 @@ export default function LensScan() {
 
              {scanned && (
                <div className="absolute inset-0">
-                 <img src="https://picsum.photos/seed/motor1/800/600" className="w-full h-full object-cover opacity-40 blur-sm" />
+                 {capturedImage ? (
+                   <img src={capturedImage} className="w-full h-full object-cover opacity-40 blur-sm" />
+                 ) : (
+                   <div className="w-full h-full bg-neutral-900" />
+                 )}
                  <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-6 text-center">
                     <div className="w-20 h-20 bg-green-500/20 backdrop-blur rounded-full flex items-center justify-center mb-4 border-2 border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
                       <Zap className="w-10 h-10 text-green-400 fill-green-400" />

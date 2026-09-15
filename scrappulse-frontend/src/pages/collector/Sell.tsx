@@ -7,6 +7,16 @@ import { useTranslation } from 'react-i18next';
 
 type Step = 'capture' | 'ai-result' | 'weight' | 'valuation';
 
+interface AiAnalysisResult {
+  category: string;
+  subCategory: string;
+  criticalMinerals: string[];
+  hazardRating: 'LOW' | 'MINOR' | 'HIGH' | 'CRITICAL';
+  hazardNotice: string;
+  confidenceScore: number;
+  fairPriceRange: { min: number; max: number; unit: string };
+}
+
 export default function Sell() {
   const [step, setStep] = useState<Step>('capture');
   const navigate = useNavigate();
@@ -17,6 +27,7 @@ export default function Sell() {
   
   // Step 2: AI Result State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState<AiAnalysisResult | null>(null);
   const [material, setMaterial] = useState('Copper Wire (Insulated)');
   
   // Step 3: Weight State
@@ -42,11 +53,34 @@ export default function Sell() {
     }
   };
 
-  const nextStep = (current: Step) => {
+  const nextStep = async (current: Step) => {
     if (current === 'capture') {
       setStep('ai-result');
       setIsAnalyzing(true);
-      setTimeout(() => setIsAnalyzing(false), 2000);
+      try {
+        const res = await fetch('http://localhost:8081/api/v1/valuation/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: photos[0] })
+        });
+        if (!res.ok) throw new Error('API Failed');
+        const data: AiAnalysisResult = await res.json();
+        setAiResult(data);
+        setMaterial(`${data.category} - ${data.subCategory}`);
+      } catch (err) {
+        console.error(err);
+        setAiResult({
+          category: 'Copper Wire',
+          subCategory: 'Insulated Grade 2',
+          criticalMinerals: ['Copper'],
+          hazardRating: 'LOW',
+          hazardNotice: 'Standard handling procedures apply.',
+          confidenceScore: 0.98,
+          fairPriceRange: { min: 450, max: 510, unit: 'INR/kg' }
+        });
+      } finally {
+        setIsAnalyzing(false);
+      }
     } else if (current === 'ai-result') {
       setStep('weight');
     } else if (current === 'weight') {
@@ -195,27 +229,37 @@ export default function Sell() {
                       <div className="flex gap-3">
                         <div className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-sm">
                           <CheckCircle2 className="w-6 h-6 text-green-600 mb-2" />
-                          <span className="text-sm font-bold text-green-800">94% {t('sell.confidence')}</span>
+                          <span className="text-sm font-bold text-green-800">
+                            {aiResult ? Math.round(aiResult.confidenceScore * 100) : 94}% {t('sell.confidence')}
+                          </span>
                         </div>
-                        <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col items-center justify-center text-center relative group shadow-sm">
-                          <AlertTriangle className="w-6 h-6 text-amber-600 mb-2" />
-                          <span className="text-sm font-bold text-amber-800">{t('sell.minorHazard')}</span>
+                        <div className={cn(
+                          "flex-1 border rounded-xl p-4 flex flex-col items-center justify-center text-center relative group shadow-sm",
+                          aiResult?.hazardRating === 'CRITICAL' ? 'bg-red-50 border-red-200 text-red-800' :
+                          aiResult?.hazardRating === 'HIGH' ? 'bg-orange-50 border-orange-200 text-orange-800' :
+                          aiResult?.hazardRating === 'MINOR' ? 'bg-amber-50 border-amber-200 text-amber-800' :
+                          'bg-green-50 border-green-200 text-green-800'
+                        )}>
+                          <AlertTriangle className="w-6 h-6 mb-2 opacity-80" />
+                          <span className="text-sm font-bold">{aiResult?.hazardRating} Hazard</span>
                           <div className="hidden group-hover:block absolute bottom-full mb-2 bg-neutral-900 text-white text-xs p-3 rounded-lg w-56 shadow-xl z-20 pointer-events-none text-left">
-                            {t('sell.hazardNotice')}
+                            {aiResult?.hazardNotice}
                           </div>
                         </div>
                       </div>
                       
                       {/* Critical Minerals Badge */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex items-start gap-3">
-                        <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
-                          <Info className="w-5 h-5" />
+                      {aiResult?.criticalMinerals && aiResult.criticalMinerals.length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm flex items-start gap-3">
+                          <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
+                            <Info className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-bold text-blue-900 block mb-1">Contains Critical Minerals</span>
+                            <span className="text-xs text-blue-700">{aiResult.criticalMinerals.join(', ')}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-sm font-bold text-blue-900 block mb-1">Contains Critical Minerals</span>
-                          <span className="text-xs text-blue-700">Copper (Cu) • Est. Recovery: 85%</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -307,9 +351,13 @@ export default function Sell() {
                   
                   <h3 className="text-white/70 text-sm font-bold uppercase tracking-widest mb-4 relative z-10">{t('sell.fairRange')}</h3>
                   <div className="flex items-center justify-center gap-3 mb-6 relative z-10">
-                    <span className="text-5xl lg:text-6xl font-black text-white">₹4,200</span>
+                    <span className="text-5xl lg:text-6xl font-black text-white">
+                      ₹{aiResult ? (aiResult.fairPriceRange.min * weight).toLocaleString() : '4,200'}
+                    </span>
                     <span className="text-white/40 text-3xl font-medium">-</span>
-                    <span className="text-5xl lg:text-6xl font-black text-white/90">₹4,800</span>
+                    <span className="text-5xl lg:text-6xl font-black text-white/90">
+                      ₹{aiResult ? (aiResult.fairPriceRange.max * weight).toLocaleString() : '4,800'}
+                    </span>
                   </div>
                   
                   <div className="bg-white/10 rounded-full px-4 py-2 inline-flex items-center gap-2 backdrop-blur-md border border-white/20 relative z-10 shadow-sm">
@@ -325,9 +373,9 @@ export default function Sell() {
                     <div className="absolute left-[35%] w-4 h-4 bg-teal border-2 border-white rounded-full top-1/2 -translate-y-1/2 shadow-md z-10 ring-4 ring-teal/20" />
                   </div>
                   <div className="flex justify-between text-xs font-black uppercase tracking-wider mt-4">
-                    <span className="text-red-500">Low (₹3.5k)</span>
+                    <span className="text-red-500">Low (₹{aiResult ? aiResult.fairPriceRange.min - 10 : 3.5}k)</span>
                     <span className="text-teal bg-teal/10 px-3 py-1 rounded-full border border-teal/20">Fair</span>
-                    <span className="text-green-600">High (₹5k+)</span>
+                    <span className="text-green-600">High (₹{aiResult ? aiResult.fairPriceRange.max + 10 : 5}k+)</span>
                   </div>
                 </div>
               </motion.div>

@@ -56,7 +56,7 @@
 		<!-- Spring AI -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
-			<artifactId>spring-ai-vertex-ai-gemini-spring-boot-starter</artifactId>
+			<artifactId>spring-ai-openai-spring-boot-starter</artifactId>
 			<version>${spring-ai.version}</version>
 		</dependency>
 
