@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useIdeas } from '../../mocks/projectIdeas';
 import { usePosts } from '../../mocks/communityPosts';
 import { Clock, IndianRupee, Printer, Share2, Bookmark, CheckCircle2, ShoppingCart, MessageSquare, Wrench } from 'lucide-react';
@@ -6,10 +6,11 @@ import { cn } from '../../lib/utils';
 
 export default function ProjectIdeaDetail() {
   const { id = 'I-301' } = useParams();
+  const location = useLocation();
   const ideas = useIdeas();
   const posts = usePosts();
 
-  const idea = ideas.find(i => i.id === id) || ideas[0];
+  const idea = location.state?.idea || ideas.find(i => i.id === id) || ideas[0];
   const relatedPosts = posts.filter(p => p.linkedIdeaId === idea.id);
 
   return (

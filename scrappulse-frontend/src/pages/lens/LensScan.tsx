@@ -27,6 +27,7 @@ export default function LensScan() {
   const [detectedComponent, setDetectedComponent] = useState('');
   const [results, setResults] = useState<ProjectIdea[]>([]);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [scanDetails, setScanDetails] = useState<AiResponse | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pastScans = useScans();
@@ -55,6 +56,7 @@ export default function LensScan() {
           const aiData: AiResponse = await res.json();
           
           setDetectedComponent(aiData.itemName);
+          setScanDetails(aiData);
           
           // Map AI response to the UI's ProjectIdea format
           const idea: ProjectIdea = {
@@ -123,6 +125,7 @@ export default function LensScan() {
     setScanned(false);
     setResults([]);
     setCapturedImage(null);
+    setScanDetails(null);
   };
 
   return (
@@ -195,6 +198,19 @@ export default function LensScan() {
                     <p className="text-white font-bold text-sm uppercase tracking-widest mb-1 opacity-80">Detected Component</p>
                     <h2 className="text-3xl font-black text-white mb-2">{detectedComponent}</h2>
                     <p className="text-green-400 font-bold mb-8">96% Match Confidence</p>
+                    
+                    {scanDetails && (
+                      <div className="bg-neutral-800/80 backdrop-blur-md p-4 rounded-xl text-left text-sm w-full max-w-sm mb-6 border border-neutral-700">
+                        <p className="text-white mb-2"><strong className="text-teal">Components:</strong> {scanDetails.description}</p>
+                        {scanDetails.isHazardous ? (
+                           <p className="text-red-400 mb-2"><strong>Warning:</strong> {scanDetails.hazardReason}</p>
+                        ) : (
+                           <p className="text-green-400 mb-2"><strong>Safety:</strong> Safe for standard handling.</p>
+                        )}
+                        <p className="text-white"><strong>Selling Price:</strong> <span className="text-amber-400">{scanDetails.suggestedPriceRange}</span></p>
+                      </div>
+                    )}
+                    
                     <button onClick={reset} className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-bold px-6 py-3 rounded-full flex items-center justify-center gap-2 transition-all">
                       <RefreshCcw className="w-4 h-4" /> Scan Another Item
                     </button>
@@ -252,7 +268,7 @@ export default function LensScan() {
                       </div>
                       
                       <h4 className="text-lg font-bold text-neutral-900 mb-4 group-hover:text-teal transition-colors pr-8 leading-tight">
-                        <Link to={`/lens/idea/${idea.id}`}>{idea.title}</Link>
+                        <Link to={`/lens/idea/${idea.id}`} state={{ idea }}>{idea.title}</Link>
                       </h4>
                       
                       <div className="flex gap-4 mb-4 text-xs font-semibold text-neutral-600">
@@ -279,7 +295,7 @@ export default function LensScan() {
                         )}
                       </div>
 
-                      <Link to={`/lens/idea/${idea.id}`} className="w-full bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm">
+                      <Link to={`/lens/idea/${idea.id}`} state={{ idea }} className="w-full bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm">
                         <Wrench className="w-4 h-4" /> View Build Steps
                       </Link>
 
